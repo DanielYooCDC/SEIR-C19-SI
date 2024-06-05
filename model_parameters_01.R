@@ -9,28 +9,28 @@ param = list()
 
 
 param$N = 2100000
-param$zacetno_stevilo = 25
+param$zacetno_stevilo = 25  # Initial number
 
 
 #### All parameters below are time series #####
 
 ### durations in states ####
-D_incubation =  rep(5.2, duration_time)
+D_incubation =  rep(5.2, duration_time)  # duration of latent period
 param$D_incubation = D_incubation
 
-D_infectious =  rep(2.9, duration_time)
+D_infectious =  rep(2.9, duration_time)  # infectious period
 param$D_infectious = D_infectious
 
-D_recovery_mild = rep(12, duration_time)
+D_recovery_mild = rep(12, duration_time)  # duration of mild illness to recovery
 param$D_recovery_mild = D_recovery_mild
 
-D_recovery_hosp = rep(12, duration_time)
+D_recovery_hosp = rep(12, duration_time)  # duration of non-ICU hospitalization to recovery
 param$D_recovery_hosp = D_recovery_hosp
 
-D_recovery_ICU = rep(14, duration_time)
+D_recovery_ICU = rep(14, duration_time)  # duration of ICU hospitalization to recovery
 param$D_recovery_ICU  = D_recovery_ICU
 
-D_death = rep(14, duration_time)
+D_death = rep(14, duration_time)  # duration of the disease before death in nursing/retirement home
 param$D_death = D_death
 
 
@@ -38,8 +38,8 @@ param$D_death = D_death
 
 
 #### waning parameters ####
-D_waning_R = rep(730, duration_time)
-D_waning_R[720:duration_time] = 365
+D_waning_R = rep(730, duration_time)  # 2 years waning immunity 
+D_waning_R[720:duration_time] = 365   # 1 year waning immunity
 param$D_waning_R = D_waning_R
 
 D_waning_V = rep(730, duration_time)
@@ -273,7 +273,7 @@ param$premik_smrti = 0
 ##### Mixing matrices ####
 ############################################
 
-# matrika mešanja, po sestavljanju se transformira
+# Mixing matrix, after assembly it is transformed
 mix_mat1 = c(1.00, 1.00, 1.00, 1.00, 1.00,
              1.00, 1.15, 1.15, 1.00, 1.00,
              1.00, 1.15, 1.15, 1.00, 1.00,
@@ -287,7 +287,7 @@ mix_mat2 = c(1.50, 1.25, 1.20, 1.05, 1.05,
              1.00, 1.00, 1.00, 1.00, 1.00)
 
 
-# povečevanje mešanja s 1.9.2021
+# Increasing mixing from September 1, 2021
 mix_mat3 = c(1.75, 1.30, 1.25, 1.05, 1.05,
              1.00, 1.20, 1.20, 1.00, 1.00,
              1.00, 1.20, 1.20, 1.00, 1.00,
@@ -295,7 +295,7 @@ mix_mat3 = c(1.75, 1.30, 1.25, 1.05, 1.05,
              1.00, 1.00, 1.00, 1.00, 1.00)
 
 
-# povečevanje mešanja s 1.10.2021
+# "Increasing mixing from October 1, 2021"
 mix_mat4 = c(3.00, 1.30, 1.25, 1.05, 1.05,
              1.00, 1.20, 1.20, 1.00, 1.00,
              1.00, 1.20, 1.20, 1.00, 1.00,
@@ -304,7 +304,7 @@ mix_mat4 = c(3.00, 1.30, 1.25, 1.05, 1.05,
 
 
 
-# povečevanje mešanja s 1.1.2022
+# "Increasing mixing from January 1, 2022"
 mix_mat5 = c(3.00, 1.30, 1.25, 1.05, 1.05,
              1.00, 1.50, 1.50, 1.00, 1.00,
              1.00, 1.50, 1.50, 1.00, 1.00,
@@ -348,12 +348,12 @@ date_diff_vacc = 300
 
 vdat = vaccdat$cep5.2nd
 vdat[is.na(vdat)] = 0
-#vsakodnevni prirastek v deležu
+#"Daily increase in proportion"
 koef_vdat = diff(vdat) / N5 
-zac_date_diff = date_diff_vacc
+zac_date_diff = date_diff_vacc  # vax was not administered until day 300
 
-uw = c(0.0, w5 * koef_vdat, 0.0)
-casV = c(zac_date_diff, rep(1, length(koef_vdat)), 10)
+uw = c(0.0, w5 * koef_vdat, 0.0)  # equivalent to daily number of dose administered divided by Total population
+casV = c(zac_date_diff, rep(1, length(koef_vdat)), 10)   #how often vaccination date was updated 
 
 vfun5 = Bt_rect_time(duration_time, uw, casV)
 
@@ -362,11 +362,11 @@ vfun5 = Bt_rect_time(duration_time, uw, casV)
 
 vdat = vaccdat$cep4.2nd
 vdat[is.na(vdat)] = 0
-#vsakodnevni prirastek v deležu
+#"Daily increase in proportion"
 koef_vdat = diff(vdat) / N4 
 zac_date_diff = date_diff_vacc
 
-uw = c(0.0, w4 * koef_vdat, 0.0)
+uw = c(0.0, w4 * koef_vdat, 0.0) # equivalent to daily number of dose administered divided by Total population
 casV = c(zac_date_diff, rep(1, length(koef_vdat)), 10)
 
 vfun4 = Bt_rect_time(duration_time, uw, casV)
@@ -376,12 +376,12 @@ vfun4 = Bt_rect_time(duration_time, uw, casV)
 
 vdat = vaccdat$cep3.2nd
 vdat[is.na(vdat)] = 0
-#vsakodnevni prirastek v deležu
+#"Daily increase in proportion"
 koef_vdat = diff(vdat) / N3 
 zac_date_diff = date_diff_vacc
 
 #scenarij cepljenja
-uw = c(0.0, w3 * koef_vdat, w3 * 0.02/100, 0.0 )
+uw = c(0.0, w3 * koef_vdat, w3 * 0.02/100, 0.0 ) # equivalent to daily number of dose administered divided by Total population
 casV = c(zac_date_diff, rep(1, length(koef_vdat)), 100, 10)
 
 vfun3 = Bt_rect_time(duration_time, uw, casV)
@@ -391,12 +391,11 @@ vfun3 = Bt_rect_time(duration_time, uw, casV)
 # age group 2
 
 vdat = vaccdat$cep2.2nd
-vdat[is.na(vdat)] = 0
-#vsakodnevni prirastek v deležu
+#"Daily increase in proportion"
 koef_vdat = diff(vdat) / N2 
 zac_date_diff = date_diff_vacc
 
-uw = c(0.0, w2 * koef_vdat, w2* 0.03/100, 0.0)
+uw = c(0.0, w2 * koef_vdat, w2* 0.03/100, 0.0)# equivalent to daily number of dose administered divided by Total population
 casV = c(zac_date_diff, rep(1, length(koef_vdat)), 100, 10)
 
 vfun2 = Bt_rect_time(duration_time, uw, casV)
@@ -406,11 +405,11 @@ vfun2 = Bt_rect_time(duration_time, uw, casV)
 
 vdat = vaccdat$cep1.2nd
 vdat[is.na(vdat)] = 0
-#vsakodnevni prirastek v deležu
+#"Daily increase in proportion"
 koef_vdat = diff(vdat) / N1 
 zac_date_diff = date_diff_vacc
 
-uw = c(0.0, w1 * koef_vdat, w1*0.06/100, 0.0)
+uw = c(0.0, w1 * koef_vdat, w1*0.06/100, 0.0) # equivalent to daily number of dose administered divided by Total population
 casV = c(zac_date_diff, rep(1, length(koef_vdat)), 100, 10)
 
 vfun1 = Bt_rect_time(duration_time, uw, casV)

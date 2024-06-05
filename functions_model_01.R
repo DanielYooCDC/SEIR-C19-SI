@@ -193,14 +193,14 @@ seir_vacc_nonvacc_waning_5grps_V01 = function(current_timepoint, state_values, p
   Rdead_a4v = state_values [134]     # dead
   Rdead_a5v = state_values [135]     # dead
   
-  #pomozni vacc za risanje
+  #Auxiliary VACC for drawing
   Vp1 = state_values [136]           # vaccinated
   Vp2 = state_values [137]           # vaccinated
   Vp3 = state_values [138]           # vaccinated
   Vp4 = state_values [139]           # vaccinated
   Vp5 = state_values [140]           # vaccinated
   
-  #še ostali pomožni parametri
+  #Other auxiliary parameters
   Ein1 = state_values [141]
   Ein2 = state_values [142]
   Ein3 = state_values [143]
@@ -245,17 +245,12 @@ seir_vacc_nonvacc_waning_5grps_V01 = function(current_timepoint, state_values, p
   
   # parameters
   
+  # asymptomatic death rate (Pz)
   p_fatal_a_tm1 = parameters[["p_fatal_a1"]]
   p_fatal_a_tm2 = parameters[["p_fatal_a2"]]
   p_fatal_a_tm3 = parameters[["p_fatal_a3"]]
   p_fatal_a_tm4 = parameters[["p_fatal_a4"]]
   p_fatal_a_tm5 = parameters[["p_fatal_a5"]]
-  
-  p_fatal_s_tm1 = parameters[["p_fatal_s1"]]
-  p_fatal_s_tm2 = parameters[["p_fatal_s2"]]
-  p_fatal_s_tm3 = parameters[["p_fatal_s3"]]
-  p_fatal_s_tm4 = parameters[["p_fatal_s4"]]
-  p_fatal_s_tm5 = parameters[["p_fatal_s5"]]
   
   p_fatal_a_t1 = p_fatal_a_tm1[current_timepoint]
   p_fatal_a_t2 = p_fatal_a_tm2[current_timepoint]
@@ -263,12 +258,20 @@ seir_vacc_nonvacc_waning_5grps_V01 = function(current_timepoint, state_values, p
   p_fatal_a_t4 = p_fatal_a_tm4[current_timepoint]
   p_fatal_a_t5 = p_fatal_a_tm5[current_timepoint]
   
+  # symptomatic death rate (1-Pr)
+  p_fatal_s_tm1 = parameters[["p_fatal_s1"]]
+  p_fatal_s_tm2 = parameters[["p_fatal_s2"]]
+  p_fatal_s_tm3 = parameters[["p_fatal_s3"]]
+  p_fatal_s_tm4 = parameters[["p_fatal_s4"]]
+  p_fatal_s_tm5 = parameters[["p_fatal_s5"]]
+  
   p_fatal_s_t1 = p_fatal_s_tm1[current_timepoint]
   p_fatal_s_t2 = p_fatal_s_tm2[current_timepoint]
   p_fatal_s_t3 = p_fatal_s_tm3[current_timepoint]
   p_fatal_s_t4 = p_fatal_s_tm4[current_timepoint]
   p_fatal_s_t5 = p_fatal_s_tm5[current_timepoint]
   
+  # Proportion of hospitalization requiring ICU (Pc)
   p_icu_tm1 = parameters[["p_ICU1"]]
   p_icu_tm2 = parameters[["p_ICU2"]]
   p_icu_tm3 = parameters[["p_ICU3"]]
@@ -281,7 +284,7 @@ seir_vacc_nonvacc_waning_5grps_V01 = function(current_timepoint, state_values, p
   p_icu_t4 = p_icu_tm4[current_timepoint]
   p_icu_t5 = p_icu_tm5[current_timepoint]
   
-  
+  # Proportion of infections requiring hospitalization (Ph)
   p_hosp_tm1 = parameters[["p_hosp1"]]
   p_hosp_tm2 = parameters[["p_hosp2"]]
   p_hosp_tm3 = parameters[["p_hosp3"]]
@@ -295,15 +298,15 @@ seir_vacc_nonvacc_waning_5grps_V01 = function(current_timepoint, state_values, p
   p_hosp_t5 = p_hosp_tm5[current_timepoint]
   
   
-  
-  Bt = parameters[["Bfun"]]  # Bt je funkcija časa
+  # daily transmission coefficients (Rt times 1/infectious period)
+  Bt = parameters[["Bfun"]]  # Bt is function of time
   beta  = Bt[current_timepoint]
   
-  # dodana je matrika mešanja, ki se spreminja po času
+  # a time-varying mixing matrix is added
   mix_mat_t = parameters[["MixMat"]]
   mix_mat = mix_mat_t[,,current_timepoint]
   
-  
+  # daily transmission coefficient combined with contact matrix
   beta_11 = mix_mat[1,1] * beta
   beta_21 = mix_mat[2,1] * beta
   beta_31 = mix_mat[3,1] * beta
@@ -335,7 +338,7 @@ seir_vacc_nonvacc_waning_5grps_V01 = function(current_timepoint, state_values, p
   beta_55 = mix_mat[5,5] * beta
   
   
-  # delež cepljenosti
+  # daily vaccination rate by age group
   ut1 = parameters[["vaccfun1"]]
   u1  = ut1[current_timepoint]
   
@@ -352,48 +355,57 @@ seir_vacc_nonvacc_waning_5grps_V01 = function(current_timepoint, state_values, p
   u5  = ut5[current_timepoint]
   
   
-  
+  # latent period (alpha)
   at      = 1/parameters[["D_incubation"]]
   a       = at[current_timepoint]
   
+  # infectious period (gamma)
   gt      = 1/parameters[["D_infectious"]]
   g       = gt[current_timepoint]
   
+  # duration of asymp infection (gammaM)
   gMt     = 1/parameters[["D_recovery_mild"]]
   gM       = gMt[current_timepoint]
   
+  # duration of non-ICU hosp infection (gammaH)
   gHOSPt  = 1/parameters[["D_recovery_hosp"]]
   gHOSP   = gHOSPt[current_timepoint]
   
+  # duration of ICU hosp infection (gammaC)
   gICUt   = 1/parameters[["D_recovery_ICU"]]
   gICU    = gICUt[current_timepoint]
   
+  # duration of disease before death in nursing home infection (gammaZ)
   gFt     = 1/parameters[["D_death"]]
   gF      = gFt[current_timepoint]
   
-  
+  # duration of natural waning immmunity (wfR)
   wrt     = 1/parameters[["D_waning_R"]]
   wr      = wrt[current_timepoint]
   
+  # duration of vax waning immmunity (wfV)
   wvt      = 1/parameters[["D_waning_V"]]
   wv       = wvt[current_timepoint]
   
   #pv     = parameters[["stopnja_imunosti_cep"]]
   
-  
+  # reduced risk of infection (fIV)
   facIvacc_t = parameters[["faktor_kuznosti_cep"]]
   facIvacc  = facIvacc_t[current_timepoint]
   
+  # reduced risk of hospitalization (fHV)
   facHvacc_t = parameters[["faktor_hosp_cep"]]
   facHvacc = facHvacc_t[current_timepoint]
   
+  # reduced risk of ICU admission (?)
   facICUvacc_t = parameters[["faktor_icu_cep"]]
   facICUvacc = facICUvacc_t[current_timepoint]
   
+  # reduced risk of death (fDV)
   facDvacc_t = parameters[["faktor_smrti_cep"]]
   facDvacc = facDvacc_t[current_timepoint]
 
-  
+  # asymp symp death rate among vaccinated
   p_fatal_a_t1v = 1/facDvacc * p_fatal_a_tm1[current_timepoint]
   p_fatal_a_t2v = 1/facDvacc * p_fatal_a_tm2[current_timepoint]
   p_fatal_a_t3v = 1/facDvacc * p_fatal_a_tm3[current_timepoint]
@@ -406,7 +418,7 @@ seir_vacc_nonvacc_waning_5grps_V01 = function(current_timepoint, state_values, p
   p_fatal_s_t4v = 1/facDvacc * p_fatal_s_tm4[current_timepoint]
   p_fatal_s_t5v = 1/facDvacc * p_fatal_s_tm5[current_timepoint]
   
-  # isto kot prej
+  # proportion hospitalizations requiring ICU among vaccinated (pCV)
   p_icu_t1v = 1/facICUvacc * p_icu_tm1[current_timepoint]
   p_icu_t2v = 1/facICUvacc * p_icu_tm2[current_timepoint]
   p_icu_t3v = 1/facICUvacc * p_icu_tm3[current_timepoint]
@@ -414,6 +426,7 @@ seir_vacc_nonvacc_waning_5grps_V01 = function(current_timepoint, state_values, p
   p_icu_t5v = 1/facICUvacc * p_icu_tm5[current_timepoint]
   
   
+  # proportion infections requiring hospitalizations among vaccinated (pHV)
   p_hosp_t1v = 1/facHvacc * p_hosp_tm1[current_timepoint]
   p_hosp_t2v = 1/facHvacc * p_hosp_tm2[current_timepoint]
   p_hosp_t3v = 1/facHvacc * p_hosp_tm3[current_timepoint]
@@ -422,13 +435,14 @@ seir_vacc_nonvacc_waning_5grps_V01 = function(current_timepoint, state_values, p
   
   
   
-  # popravek še p_mild
+  # proportion asymp infection 
   p_mild1 = 1 - p_hosp_t1 - p_fatal_a_t1
   p_mild2 = 1 - p_hosp_t2 - p_fatal_a_t2
   p_mild3 = 1 - p_hosp_t3 - p_fatal_a_t3
   p_mild4 = 1 - p_hosp_t4 - p_fatal_a_t4
   p_mild5 = 1 - p_hosp_t5 - p_fatal_a_t5
   
+  # proportion asymp infection among vaccinated
   p_mild1v = 1 - p_hosp_t1v - p_fatal_a_t1v
   p_mild2v = 1 - p_hosp_t2v - p_fatal_a_t2v
   p_mild3v = 1 - p_hosp_t3v - p_fatal_a_t3v
@@ -439,7 +453,7 @@ seir_vacc_nonvacc_waning_5grps_V01 = function(current_timepoint, state_values, p
   with (
     as.list (parameters),
     {
-      
+      # daily force of infection 
       lam1 = (beta_11*I1 + beta_12*I2 + beta_13*I3 + beta_14*I4 + beta_15*I5 + 
                 beta_11*Iv1 + beta_12*Iv2 + beta_13*Iv3 + beta_14*Iv4 + beta_15*Iv5)
       
@@ -456,6 +470,7 @@ seir_vacc_nonvacc_waning_5grps_V01 = function(current_timepoint, state_values, p
                 beta_51*Iv1 + beta_52*Iv2 + beta_53*Iv3 + beta_54*Iv4 + beta_55*Iv5)
       
       
+      # daily force of infection among vaccinated
       lam1v = 1/facIvacc * lam1
       lam2v = 1/facIvacc * lam2
       lam3v = 1/facIvacc * lam3
@@ -464,30 +479,32 @@ seir_vacc_nonvacc_waning_5grps_V01 = function(current_timepoint, state_values, p
       
 
       
-      # diferencialne enačbe  
-      # dodani so povratniki iz R in 
-      # nonvacc
+      ####################### ODE ######################
+      
+      ##### Susceptible
+      
+      #susceptible population (S)
       dS1 = -lam1 * S1 - u1 + wr*Rmild1 + wr*Rhosp1 + wr*Ricu1 + wr*Rmild1v + wr*Rhosp1v + wr*Ricu1v + wv*V1  
       dS2 = -lam2 * S2 - u2 + wr*Rmild2 + wr*Rhosp2 + wr*Ricu2 + wr*Rmild2v + wr*Rhosp2v + wr*Ricu2v + wv*V2  
       dS3 = -lam3 * S3 - u3 + wr*Rmild3 + wr*Rhosp3 + wr*Ricu3 + wr*Rmild3v + wr*Rhosp3v + wr*Ricu3v + wv*V3  
       dS4 = -lam4 * S4 - u4 + wr*Rmild4 + wr*Rhosp4 + wr*Ricu4 + wr*Rmild4v + wr*Rhosp4v + wr*Ricu4v + wv*V4  
       dS5 = -lam5 * S5 - u5 + wr*Rmild5 + wr*Rhosp5 + wr*Ricu5 + wr*Rmild5v + wr*Rhosp5v + wr*Ricu5v + wv*V5  
       
-      # vacc
+      # Auxiliary for drawing (?)
       dV1 = u1 - wv*V1 
       dV2 = u2 - wv*V2
       dV3 = u3 - wv*V3
       dV4 = u4 - wv*V4
       dV5 = u5 - wv*V5
       
-      # pomozni vacc za risanje
+      # Auxiliary for drawing (?)
       dVp1 = u1  
       dVp2 = u2 
       dVp3 = u3 
       dVp4 = u4 
       dVp5 = u5
       
-      
+      #susceptible vaccinated population (Sv)
       dSv1 = u1 - wv*V1 -lam1v * Sv1
       dSv2 = u2 - wv*V2 -lam2v * Sv2
       dSv3 = u3 - wv*V3 -lam3v * Sv3
@@ -495,27 +512,30 @@ seir_vacc_nonvacc_waning_5grps_V01 = function(current_timepoint, state_values, p
       dSv5 = u5 - wv*V5 -lam5v * Sv5
       
       
+      ##### Exposed 
+      
+      #exposed 
       dE1 = lam1 * S1 - (a * E1)
       dE2 = lam2 * S2 - (a * E2)
       dE3 = lam3 * S3 - (a * E3)
       dE4 = lam4 * S4 - (a * E4)
       dE5 = lam5 * S5 - (a * E5)
       
-      #pomozni za risanje
+      # cumulative number of infected
       dEin1 = lam1 * S1 
       dEin2 = lam2 * S2 
       dEin3 = lam3 * S3 
       dEin4 = lam4 * S4 
       dEin5 = lam5 * S5 
       
-      
+      # vaccinated exposed
       dEv1 = lam1v * Sv1 - (a * Ev1)
       dEv2 = lam2v * Sv2 - (a * Ev2)
       dEv3 = lam3v * Sv3 - (a * Ev3)
       dEv4 = lam4v * Sv4 - (a * Ev4)
       dEv5 = lam5v * Sv5 - (a * Ev5)
       
-      #pomozni za risanje
+      # cumulative number of infected if vacciated
       dEinv1 = lam1v * Sv1 
       dEinv2 = lam2v * Sv2 
       dEinv3 = lam3v * Sv3 
@@ -523,66 +543,73 @@ seir_vacc_nonvacc_waning_5grps_V01 = function(current_timepoint, state_values, p
       dEinv5 = lam5v * Sv5 
       
       
-      dI1 = (a * E1) - (g * I1)
+      ##### Infectious 
+      
+      # Infectious 
+      
+      dI1 = (a * E1) - (g * I1)  #gamma (infectious period)
       dI2 = (a * E2) - (g * I2)
       dI3 = (a * E3) - (g * I3)
       dI4 = (a * E4) - (g * I4)
       dI5 = (a * E5) - (g * I5)
       
+      # Infectious among vaccinated
       dIv1 = (a * Ev1) - (g * Iv1)
       dIv2 = (a * Ev2) - (g * Iv2)
       dIv3 = (a * Ev3) - (g * Iv3)
       dIv4 = (a * Ev4) - (g * Iv4)
       dIv5 = (a * Ev5) - (g * Iv5)
       
-      
-      dMild1       =   p_mild1 * g * I1   - gM * Mild1
+      # asymp infeciton
+      dMild1       =   p_mild1 * g * I1   - gM * Mild1 #recovered rate gM
       dMild2       =   p_mild2 * g * I2   - gM * Mild2
       dMild3       =   p_mild3 * g * I3   - gM * Mild3
       dMild4       =   p_mild4 * g * I4   - gM * Mild4
       dMild5       =   p_mild5 * g * I5   - gM * Mild5
       
+      # asymp infeciton among vaccinated
       dMild1v       =   p_mild1v * g * Iv1   - gM * Mild1v
       dMild2v       =   p_mild2v * g * Iv2   - gM * Mild2v
       dMild3v       =   p_mild3v * g * Iv3   - gM * Mild3v
       dMild4v       =   p_mild4v * g * Iv4   - gM * Mild4v
       dMild5v       =   p_mild5v * g * Iv5   - gM * Mild5v
       
+      # among vaccinated
       dHosp1       =   p_hosp_t1 * g * I1   - gHOSP * Hosp1
       dHosp2       =   p_hosp_t2 * g * I2   - gHOSP * Hosp2
       dHosp3       =   p_hosp_t3 * g * I3   - gHOSP * Hosp3
       dHosp4       =   p_hosp_t4 * g * I4   - gHOSP * Hosp4
       dHosp5       =   p_hosp_t5 * g * I5   - gHOSP * Hosp5
       
-      # za izrise
+      # FOR PLOTTING
       dHosp1in       =   p_hosp_t1 * g * I1   
       dHosp2in       =   p_hosp_t2 * g * I2   
       dHosp3in       =   p_hosp_t3 * g * I3   
       dHosp4in       =   p_hosp_t4 * g * I4   
       dHosp5in       =   p_hosp_t5 * g * I5   
       
-      
+      # Hospitalized among vaccinated
       dHosp1v       =   p_hosp_t1v * g * Iv1   - gHOSP * Hosp1v
       dHosp2v       =   p_hosp_t2v * g * Iv2   - gHOSP * Hosp2v
       dHosp3v       =   p_hosp_t3v * g * Iv3   - gHOSP * Hosp3v
       dHosp4v       =   p_hosp_t4v * g * Iv4   - gHOSP * Hosp4v
       dHosp5v       =   p_hosp_t5v * g * Iv5   - gHOSP * Hosp5v
       
-      # za izris
+      # FOR PLOTTING
       dHosp1inv       =   p_hosp_t1v * g * Iv1   
       dHosp2inv       =   p_hosp_t2v * g * Iv2   
       dHosp3inv       =   p_hosp_t3v * g * Iv3   
       dHosp4inv       =   p_hosp_t4v * g * Iv4   
       dHosp5inv       =   p_hosp_t5v * g * Iv5   
       
-      
+      # ICU admission 
       dICU1        =   p_hosp_t1 * p_icu_t1 * g * I1   - gICU * ICU1
       dICU2        =   p_hosp_t2 * p_icu_t2 * g * I2   - gICU * ICU2
       dICU3        =   p_hosp_t3 * p_icu_t3 * g * I3   - gICU * ICU3
       dICU4        =   p_hosp_t4 * p_icu_t4 * g * I4   - gICU * ICU4
       dICU5        =   p_hosp_t5 * p_icu_t5 * g * I5   - gICU * ICU5
       
-      # za izris
+      # FOR PLOTTING
       dICU1in        =   p_hosp_t1 * p_icu_t1 * g * I1   
       dICU2in        =   p_hosp_t2 * p_icu_t2 * g * I2   
       dICU3in        =   p_hosp_t3 * p_icu_t3 * g * I3   
@@ -590,14 +617,14 @@ seir_vacc_nonvacc_waning_5grps_V01 = function(current_timepoint, state_values, p
       dICU5in        =   p_hosp_t5 * p_icu_t5 * g * I5   
       
       
-      
+      # ICU admission among vaccinated
       dICU1v        =   p_hosp_t1v * p_icu_t1v * g * Iv1   - gICU * ICU1v
       dICU2v        =   p_hosp_t2v * p_icu_t2v * g * Iv2   - gICU * ICU2v
       dICU3v        =   p_hosp_t3v * p_icu_t3v * g * Iv3   - gICU * ICU3v
       dICU4v        =   p_hosp_t4v * p_icu_t4v * g * Iv4   - gICU * ICU4v
       dICU5v        =   p_hosp_t5v * p_icu_t5v * g * Iv5   - gICU * ICU5v
       
-      # za izris
+      # FOR PLOTTING
       dICU1inv        =   p_hosp_t1v * p_icu_t1v * g * Iv1   
       dICU2inv        =   p_hosp_t2v * p_icu_t2v * g * Iv2   
       dICU3inv        =   p_hosp_t3v * p_icu_t3v * g * Iv3   
@@ -605,7 +632,7 @@ seir_vacc_nonvacc_waning_5grps_V01 = function(current_timepoint, state_values, p
       dICU5inv        =   p_hosp_t5v * p_icu_t5v * g * Iv5   
       
       
-      
+      # Death (?)
       dDead_s1     =   p_fatal_s_t1 * p_hosp_t1 * p_icu_t1 * g * I1   - gICU * Dead_s1
       dDead_s2     =   p_fatal_s_t2 * p_hosp_t2 * p_icu_t2 * g * I2   - gICU * Dead_s2
       dDead_s3     =   p_fatal_s_t3 * p_hosp_t3 * p_icu_t3 * g * I3   - gICU * Dead_s3
@@ -613,6 +640,7 @@ seir_vacc_nonvacc_waning_5grps_V01 = function(current_timepoint, state_values, p
       dDead_s5     =   p_fatal_s_t5 * p_hosp_t5 * p_icu_t5 * g * I5   - gICU * Dead_s5
       
       
+      # Death among vaccinated (?)
       dDead_s1v     =   p_fatal_s_t1v * p_hosp_t1v * p_icu_t1v * g * Iv1   - gICU * Dead_s1v
       dDead_s2v     =   p_fatal_s_t2v * p_hosp_t2v * p_icu_t2v * g * Iv2   - gICU * Dead_s2v
       dDead_s3v     =   p_fatal_s_t3v * p_hosp_t3v * p_icu_t3v * g * Iv3   - gICU * Dead_s3v
@@ -621,6 +649,7 @@ seir_vacc_nonvacc_waning_5grps_V01 = function(current_timepoint, state_values, p
       
       
       
+      # Death (?)
       dDead_a1     =   p_fatal_a_t1 * g * I1    - gF * Dead_a1
       dDead_a2     =   p_fatal_a_t2 * g * I2    - gF * Dead_a2
       dDead_a3     =   p_fatal_a_t3 * g * I3    - gF * Dead_a3
@@ -628,6 +657,7 @@ seir_vacc_nonvacc_waning_5grps_V01 = function(current_timepoint, state_values, p
       dDead_a5     =   p_fatal_a_t5 * g * I5    - gF * Dead_a5
       
       
+      # Death among vaccinated (?)
       dDead_a1v     =   p_fatal_a_t1v * g * Iv1    - gF * Dead_a1v
       dDead_a2v     =   p_fatal_a_t2v * g * Iv2    - gF * Dead_a2v
       dDead_a3v     =   p_fatal_a_t3v * g * Iv3    - gF * Dead_a3v
@@ -635,14 +665,16 @@ seir_vacc_nonvacc_waning_5grps_V01 = function(current_timepoint, state_values, p
       dDead_a5v     =   p_fatal_a_t5v * g * Iv5    - gF * Dead_a5v
       
       
-      ##############
-      # dodamo povratnike
+      ##### Recovered
+      
+      # recovered from mild illness
       dRmild1      =   gM * Mild1  - wr*Rmild1
       dRmild2      =   gM * Mild2  - wr*Rmild2
       dRmild3      =   gM * Mild3  - wr*Rmild3
       dRmild4      =   gM * Mild4  - wr*Rmild4
       dRmild5      =   gM * Mild5  - wr*Rmild5
       
+      # recovered from mild illness among vaccinated
       dRmild1v      =   gM * Mild1v  - wr*Rmild1v
       dRmild2v      =   gM * Mild2v  - wr*Rmild2v
       dRmild3v      =   gM * Mild3v  - wr*Rmild3v
@@ -650,12 +682,14 @@ seir_vacc_nonvacc_waning_5grps_V01 = function(current_timepoint, state_values, p
       dRmild5v      =   gM * Mild5v  - wr*Rmild5v
       
       
+      # recovered from hosp
       dRhosp1      =   gHOSP * Hosp1  - wr*Rhosp1
       dRhosp2      =   gHOSP * Hosp2  - wr*Rhosp2
       dRhosp3      =   gHOSP * Hosp3  - wr*Rhosp3
       dRhosp4      =   gHOSP * Hosp4  - wr*Rhosp4
       dRhosp5      =   gHOSP * Hosp5  - wr*Rhosp5
       
+      # recovered from hosp among vaccinated
       dRhosp1v      =   gHOSP * Hosp1v  - wr*Rhosp1v
       dRhosp2v      =   gHOSP * Hosp2v  - wr*Rhosp2v
       dRhosp3v      =   gHOSP * Hosp3v  - wr*Rhosp3v
@@ -664,19 +698,21 @@ seir_vacc_nonvacc_waning_5grps_V01 = function(current_timepoint, state_values, p
       
       
       
+      # recovered from ICU
       dRicu1       =   gICU  * ICU1  - wr*Ricu1
       dRicu2       =   gICU  * ICU2  - wr*Ricu2
       dRicu3       =   gICU  * ICU3  - wr*Ricu3
       dRicu4       =   gICU  * ICU4  - wr*Ricu4
       dRicu5       =   gICU  * ICU5  - wr*Ricu5
       
+      # recovered from ICU among vaccinated
       dRicu1v       =   gICU  * ICU1v  - wr*Ricu1v
       dRicu2v       =   gICU  * ICU2v  - wr*Ricu2v
       dRicu3v       =   gICU  * ICU3v  - wr*Ricu3v
       dRicu4v       =   gICU  * ICU4v  - wr*Ricu4v
       dRicu5v       =   gICU  * ICU5v  - wr*Ricu5v
       
-      
+      # Death ???
       dRdead_s1    =   gICU * Dead_s1
       dRdead_s2    =   gICU * Dead_s2
       dRdead_s3    =   gICU * Dead_s3
@@ -706,7 +742,7 @@ seir_vacc_nonvacc_waning_5grps_V01 = function(current_timepoint, state_values, p
       
       
       
-      # rezultati
+      # combine all the results
       results = c (dS1, dS2, dS3, dS4, dS5,
                    dE1, dE2, dE3, dE4, dE5,
                    dI1, dI2, dI3, dI4, dI5,
@@ -767,9 +803,9 @@ compute_model_base_V01 = function(Bfun, duration_time, w, param){
   w5 = w[5]
   
   
-  # inital values
-  N = param$N                      # population
-  S = (N-param$zacetno_stevilo) / N
+  # initial values
+  N = param$N                           # population
+  S = (N-param$zacetno_stevilo) / N     # Susceptible population
   
   S1 = w1 * S
   S2 = w2 * S
@@ -777,7 +813,7 @@ compute_model_base_V01 = function(Bfun, duration_time, w, param){
   S4 = w4 * S
   S5 = w5 * S
   
-  zacetno_stevilo = param$zacetno_stevilo / 5
+  zacetno_stevilo = param$zacetno_stevilo / 5   # Initial number of infection
   
   E1 = zacetno_stevilo/N
   E2 = zacetno_stevilo/N
@@ -831,13 +867,12 @@ compute_model_base_V01 = function(Bfun, duration_time, w, param){
   
   out_seir = lsoda(initial_values, timepoints, seir_vacc_nonvacc_waning_5grps_V01, parameter_list)
   
+  # proportion to number
   out_seir[,2:ncol(out_seir)] = round(out_seir[,2:ncol(out_seir)]*N, digits = 2)
-  
-  
   
   output = data.frame(out_seir)
   
-  # zložimo skupaj vacc in nonvacc
+  # combine vaccinated and unvaccinated by compartments
   output$S1 = output$S1 + output$Sv1
   output$S2 = output$S2 + output$Sv2
   output$S3 = output$S3 + output$Sv3
@@ -987,13 +1022,13 @@ compute_model_V01 = function(Bfun, duration_time, w, param) {
   
   
   ##############################
-  ### shift: hosp
+  ### shift: hosp (shift left by 6 days)
   ##############################
   
   org_st = output$Hosp1
   premk_st = output$Hosp1
   for (j in 1:length(org_st)) {
-    if (j>param$premik_hosp)
+    if (j>param$premik_hosp)  #shifting parameters
       premk_st[j-param$premik_hosp] = org_st[j]
   }
   output$Hosp1 = premk_st
@@ -1035,7 +1070,7 @@ compute_model_V01 = function(Bfun, duration_time, w, param) {
   
   
   ##############################
-  ### shift: hospIN
+  ### shift: hospIN (shift left by 6 days)
   ##############################
   
   org_st = output$Hosp1in
@@ -1084,7 +1119,7 @@ compute_model_V01 = function(Bfun, duration_time, w, param) {
   
   
   ##############################
-  ### shift: icu
+  ### shift: icu (shift left by 5 days)
   ##############################
   
   org_st = output$ICU1
@@ -1130,7 +1165,7 @@ compute_model_V01 = function(Bfun, duration_time, w, param) {
   
   
   ##############################
-  ### shift: icu IN
+  ### shift: icu IN  (shift left by 5 days)
   ##############################
   
   org_st = output$ICU1in
@@ -1179,56 +1214,55 @@ compute_model_V01 = function(Bfun, duration_time, w, param) {
   ###################################
   
   
-  pdat = data.frame(skupine=c(rep("okuženi: dnevno 1", nrow(output)),
-                              rep("hospitalizirani 1", nrow(output)),
+  pdat = data.frame(groups=c(rep("infected: group 1", nrow(output)),
+                              rep("hospitalization 1", nrow(output)),
                               rep("ICU 1", nrow(output)),
-                              rep("umrli: kumulativno 1", nrow(output)),
-                              rep("umrli: dnevno 1", nrow(output)),
-                              rep("cepljeni 1", nrow(output)),
+                              rep("death: cumulative 1", nrow(output)),
+                              rep("death: daily 1", nrow(output)),
+                              rep("vaccinated 1", nrow(output)),
                               rep("hospIN 1", nrow(output)),
                               rep("ICUIN 1", nrow(output)),
                               
-                              rep("okuženi: dnevno 2", nrow(output)),
-                              rep("hospitalizirani 2", nrow(output)),
+                              rep("infected: group 2", nrow(output)),
+                              rep("hospitalization 2", nrow(output)),
                               rep("ICU 2", nrow(output)),
-                              rep("umrli: kumulativno 2", nrow(output)),
-                              rep("umrli: dnevno 2", nrow(output)),
-                              rep("cepljeni 2", nrow(output)),
+                              rep("death: cumulative 2", nrow(output)),
+                              rep("death: daily 2", nrow(output)),
+                              rep("vaccinated 2", nrow(output)),
                               rep("hospIN 2", nrow(output)),
                               rep("ICUIN 2", nrow(output)),
                               
-                              rep("okuženi: dnevno 3", nrow(output)),
-                              rep("hospitalizirani 3", nrow(output)),
+                              rep("infected: group 3", nrow(output)),
+                              rep("hospitalization 3", nrow(output)),
                               rep("ICU 3", nrow(output)),
-                              rep("umrli: kumulativno 3", nrow(output)),
-                              rep("umrli: dnevno 3", nrow(output)),
-                              rep("cepljeni 3", nrow(output)),
+                              rep("death: cumulative 3", nrow(output)),
+                              rep("death: daily 3", nrow(output)),
+                              rep("vaccinated 3", nrow(output)),
                               rep("hospIN 3", nrow(output)),
                               rep("ICUIN 3", nrow(output)),
                               
-                              
-                              rep("okuženi: dnevno 4", nrow(output)),
-                              rep("hospitalizirani 4", nrow(output)),
+                              rep("infected: group 4", nrow(output)),
+                              rep("hospitalization 4", nrow(output)),
                               rep("ICU 4", nrow(output)),
-                              rep("umrli: kumulativno 4", nrow(output)),
-                              rep("umrli: dnevno 4", nrow(output)),
-                              rep("cepljeni 4", nrow(output)),
+                              rep("death: cumulative 4", nrow(output)),
+                              rep("death: daily 4", nrow(output)),
+                              rep("vaccinated 4", nrow(output)),
                               rep("hospIN 4", nrow(output)),
                               rep("ICUIN 4", nrow(output)),
                               
                               
-                              rep("okuženi: dnevno 5", nrow(output)),
-                              rep("hospitalizirani 5", nrow(output)),
+                              rep("infected: group 5", nrow(output)),
+                              rep("hospitalization 5", nrow(output)),
                               rep("ICU 5", nrow(output)),
-                              rep("umrli: kumulativno 5", nrow(output)),
-                              rep("umrli: dnevno 5", nrow(output)),
-                              rep("cepljeni 5", nrow(output)),
+                              rep("death: cumulative 5", nrow(output)),
+                              rep("death: daily 5", nrow(output)),
+                              rep("vaccinated 5", nrow(output)),
                               rep("hospIN 5", nrow(output)),
                               rep("ICUIN 5", nrow(output))
                               
                               
   ),
-  "stevilo"=c(output$Ein1,
+  "number"=c(output$Ein1,
               output$Hosp1,
               output$ICU1,
               output$Rdead_s1 + output$Rdead_a1,
@@ -1275,7 +1309,7 @@ compute_model_V01 = function(Bfun, duration_time, w, param) {
               
               
   ),
-  dnevi = c(output$time,
+  days = c(output$time,
             output$time,
             output$time,
             output$time,
@@ -1343,88 +1377,88 @@ compute_model_V01 = function(Bfun, duration_time, w, param) {
 
 joining_model_projections = function(pdat) 
 {
-    odat = pdat[pdat$skupine == "okuženi: dnevno 1",]
-    odat$stevilo = pdat[pdat$skupine == "okuženi: dnevno 1","stevilo"] + 
-      pdat[pdat$skupine == "okuženi: dnevno 2","stevilo"] + 
-      pdat[pdat$skupine == "okuženi: dnevno 3","stevilo"] + 
-      pdat[pdat$skupine == "okuženi: dnevno 4","stevilo"] + 
-      pdat[pdat$skupine == "okuženi: dnevno 5","stevilo"]
+    odat = pdat[pdat$groups == "infected: group 1",]
+    odat$number = pdat[pdat$groups == "infected: group 1","number"] + 
+      pdat[pdat$groups == "infected: group 2","number"] + 
+      pdat[pdat$groups == "infected: group 3","number"] + 
+      pdat[pdat$groups == "infected: group 4","number"] + 
+      pdat[pdat$groups == "infected: group 5","number"]
     
-    odat$skupine = "okuženi: dnevno"
-    
-    
-    hdat = pdat[pdat$skupine == "hospitalizirani 1",]
-    hdat$stevilo = pdat[pdat$skupine == "hospitalizirani 1","stevilo"] + 
-      pdat[pdat$skupine == "hospitalizirani 2","stevilo"] + 
-      pdat[pdat$skupine == "hospitalizirani 3","stevilo"] + 
-      pdat[pdat$skupine == "hospitalizirani 4","stevilo"] + 
-      pdat[pdat$skupine == "hospitalizirani 5","stevilo"]
-    
-    hdat$skupine = "hospitalizirani"
-    
-    hindat = pdat[pdat$skupine == "hospIN 1",]
-    hindat$stevilo = pdat[pdat$skupine == "hospIN 1","stevilo"] + 
-      pdat[pdat$skupine == "hospIN 2","stevilo"] + 
-      pdat[pdat$skupine == "hospIN 3","stevilo"] + 
-      pdat[pdat$skupine == "hospIN 4","stevilo"] + 
-      pdat[pdat$skupine == "hospIN 5","stevilo"]
-    
-    hindat$skupine = "hosp in"
+    odat$groups = "infected: group"
     
     
+    hdat = pdat[pdat$groups == "hospitalization 1",]
+    hdat$number = pdat[pdat$groups == "hospitalization 1","number"] + 
+      pdat[pdat$groups == "hospitalization 2","number"] + 
+      pdat[pdat$groups == "hospitalization 3","number"] + 
+      pdat[pdat$groups == "hospitalization 4","number"] + 
+      pdat[pdat$groups == "hospitalization 5","number"]
     
-    idat = pdat[pdat$skupine == "ICU 1",]
-    idat$stevilo = pdat[pdat$skupine == "ICU 1","stevilo"] + 
-      pdat[pdat$skupine == "ICU 2","stevilo"] + 
-      pdat[pdat$skupine == "ICU 3","stevilo"] + 
-      pdat[pdat$skupine == "ICU 4","stevilo"] + 
-      pdat[pdat$skupine == "ICU 5","stevilo"]
+    hdat$groups = "hospitalization"
     
-    idat$skupine = "icu"
+    hindat = pdat[pdat$groups == "hospIN 1",]
+    hindat$number = pdat[pdat$groups == "hospIN 1","number"] + 
+      pdat[pdat$groups == "hospIN 2","number"] + 
+      pdat[pdat$groups == "hospIN 3","number"] + 
+      pdat[pdat$groups == "hospIN 4","number"] + 
+      pdat[pdat$groups == "hospIN 5","number"]
     
-    
-    iindat = pdat[pdat$skupine == "ICUIN 1",]
-    iindat$stevilo = pdat[pdat$skupine == "ICUIN 1","stevilo"] + 
-      pdat[pdat$skupine == "ICUIN 2","stevilo"] + 
-      pdat[pdat$skupine == "ICUIN 3","stevilo"] + 
-      pdat[pdat$skupine == "ICUIN 4","stevilo"] + 
-      pdat[pdat$skupine == "ICUIN 5","stevilo"]
-    
-    iindat$skupine = "icu in"
+    hindat$groups = "hosp in"
     
     
     
+    idat = pdat[pdat$groups == "ICU 1",]
+    idat$number = pdat[pdat$groups == "ICU 1","number"] + 
+      pdat[pdat$groups == "ICU 2","number"] + 
+      pdat[pdat$groups == "ICU 3","number"] + 
+      pdat[pdat$groups == "ICU 4","number"] + 
+      pdat[pdat$groups == "ICU 5","number"]
+    
+    idat$groups = "icu"
     
     
-    dudat = pdat[pdat$skupine == "umrli: dnevno 1",]
-    dudat$stevilo = pdat[pdat$skupine == "umrli: dnevno 1","stevilo"] + 
-      pdat[pdat$skupine == "umrli: dnevno 2","stevilo"] + 
-      pdat[pdat$skupine == "umrli: dnevno 3","stevilo"] + 
-      pdat[pdat$skupine == "umrli: dnevno 4","stevilo"] + 
-      pdat[pdat$skupine == "umrli: dnevno 5","stevilo"]
+    iindat = pdat[pdat$groups == "ICUIN 1",]
+    iindat$number = pdat[pdat$groups == "ICUIN 1","number"] + 
+      pdat[pdat$groups == "ICUIN 2","number"] + 
+      pdat[pdat$groups == "ICUIN 3","number"] + 
+      pdat[pdat$groups == "ICUIN 4","number"] + 
+      pdat[pdat$groups == "ICUIN 5","number"]
     
-    dudat$skupine = "umrli-dnevno"
+    iindat$groups = "icu in"
     
     
-    kudat = pdat[pdat$skupine == "umrli: kumulativno 1",]
-    kudat$stevilo = pdat[pdat$skupine == "umrli: kumulativno 1","stevilo"] + 
-      pdat[pdat$skupine == "umrli: kumulativno 2","stevilo"] + 
-      pdat[pdat$skupine == "umrli: kumulativno 3","stevilo"] + 
-      pdat[pdat$skupine == "umrli: kumulativno 4","stevilo"] + 
-      pdat[pdat$skupine == "umrli: kumulativno 5","stevilo"]
     
-    kudat$skupine = "umrli-kumulativno"
+    
+    
+    dudat = pdat[pdat$groups == "death: daily 1",]
+    dudat$number = pdat[pdat$groups == "death: daily 1","number"] + 
+      pdat[pdat$groups == "death: daily 2","number"] + 
+      pdat[pdat$groups == "death: daily 3","number"] + 
+      pdat[pdat$groups == "death: daily 4","number"] + 
+      pdat[pdat$groups == "death: daily 5","number"]
+    
+    dudat$groups = "death: daily"
+    
+    
+    kudat = pdat[pdat$groups == "death: cumulative 1",]
+    kudat$number = pdat[pdat$groups == "death: cumulative 1","number"] + 
+      pdat[pdat$groups == "death: cumulative 2","number"] + 
+      pdat[pdat$groups == "death: cumulative 3","number"] + 
+      pdat[pdat$groups == "death: cumulative 4","number"] + 
+      pdat[pdat$groups == "death: cumulative 5","number"]
+    
+    kudat$groups = "death: cumulative"
 
 
     ## Vaccination data
-    cpdat = pdat[pdat$skupine == "cepljeni 1",]
-    cpdat$stevilo = pdat[pdat$skupine == "cepljeni 1","stevilo"] + 
-      pdat[pdat$skupine == "cepljeni 2","stevilo"] + 
-      pdat[pdat$skupine == "cepljeni 3","stevilo"] + 
-      pdat[pdat$skupine == "cepljeni 4","stevilo"] + 
-      pdat[pdat$skupine == "cepljeni 5","stevilo"]
+    cpdat = pdat[pdat$groups == "vaccinated 1",]
+    cpdat$number = pdat[pdat$groups == "vaccinated 1","number"] + 
+      pdat[pdat$groups == "vaccinated 2","number"] + 
+      pdat[pdat$groups == "vaccinated 3","number"] + 
+      pdat[pdat$groups == "vaccinated 4","number"] + 
+      pdat[pdat$groups == "vaccinated 5","number"]
     
-    cpdat$skupine = "cepljeni skupaj"
+    cpdat$groups = "vaccinated"
     
     
     spdat = rbind(odat, hdat, idat, dudat, kudat, hindat, iindat, cpdat)
@@ -1442,12 +1476,12 @@ joining_model_projections = function(pdat)
 
 
 ### Bt function #####
-
+# daily vaccination rate
 
 Bt_rect_time = function(end_time, Bw, win_len)
 {
   if (length(Bw) != length(win_len))
-    win_len = rep(10, length(Bw))
+    win_len = rep(10, length(Bw))  #every 10 day vax rate updated
   
   Bfun = rep(0, end_time)
   ct = 1

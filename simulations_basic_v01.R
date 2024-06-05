@@ -1,6 +1,7 @@
 ############################################
 ##### Init  ####
 ############################################
+setwd("C:/Users/opp8/OneDrive - CDC/GitHub/SEIR-C19-SI")
 
 library(dplyr)
 library(tidyr)
@@ -76,7 +77,11 @@ Bfun = 1/param$D_infectious * Rfun
 ##### Model run  ####
 ############################################
 
+start.time <- Sys.time()
 pdat =  compute_model_V01(Bfun, duration_time, w, param)
+end.time <- Sys.time()
+time.taken <- round(end.time - start.time,2)
+time.taken
 
 ## join model projections
 spdat = joining_model_projections(pdat)
@@ -91,54 +96,54 @@ spdat = joining_model_projections(pdat)
 
 ### Projection: daily cases: smoothed average
 
-odat_scen = spdat[spdat$skupine=="okuženi: dnevno",]
+odat_scen = spdat[spdat$groups=="infected: group",]
 #7-day smoothing average
-odat_scen$stevilo = ma(odat_scen$stevilo, n = 7, side = 1)
-odat_scen$stevilo = round(odat_scen$stevilo, digits = 2)
-odat_scen$skupine = "oku"
+odat_scen$number = ma(odat_scen$number, n = 7, side = 1)
+odat_scen$number = round(odat_scen$number, digits = 2)
+odat_scen$groups = "infected"
 
 
 ### Projection: hospitalisations 
-hspdat_scen = spdat[spdat$skupine=="hospitalizirani",]
-hspdat_scen$skupine = "hosp"
-hspdat_scen$stevilo = round(hspdat_scen$stevilo, digits = 0)
+hspdat_scen = spdat[spdat$groups=="hospitalization",]
+hspdat_scen$groups = "hosp"
+hspdat_scen$number = round(hspdat_scen$number, digits = 0)
   
   
 ### Projection: hosp IN 
-hspindat_scen = spdat[spdat$skupine=="hosp in",]
-hspindat_scen$skupine = "hosp in"
-hspindat_scen$stevilo = round(hspindat_scen$stevilo, digits = 0)
+hspindat_scen = spdat[spdat$groups=="hosp in",]
+hspindat_scen$groups = "hosp in"
+hspindat_scen$number = round(hspindat_scen$number, digits = 0)
 
   
   
   
 ### Projection: intensive care
-ispdat_scen = spdat[spdat$skupine=="icu",]
-ispdat_scen$skupine = "icu" 
-ispdat_scen$stevilo = round(ispdat_scen$stevilo, digits = 0)
+ispdat_scen = spdat[spdat$groups=="icu",]
+ispdat_scen$groups = "icu" 
+ispdat_scen$number = round(ispdat_scen$number, digits = 0)
 
   
   
 ### Projection: intensive care IN
 
-icuindat_scen = spdat[spdat$skupine=="icu in",]
-icuindat_scen$skupine = "icu in" 
-icuindat_scen$stevilo = round(icuindat_scen$stevilo, digits = 0)
+icuindat_scen = spdat[spdat$groups=="icu in",]
+icuindat_scen$groups = "icu in" 
+icuindat_scen$number = round(icuindat_scen$number, digits = 0)
 
 
 ### Projection: daily deaths: smoothed average
 
-udspdat_scen = spdat[spdat$skupine=="umrli-dnevno",]
-udspdat_scen$skupine = "umrli"
-udspdat_scen$stevilo = round(udspdat_scen$stevilo, digits = 2)
+udspdat_scen = spdat[spdat$groups=="death: daily",]
+udspdat_scen$groups = "death"
+udspdat_scen$number = round(udspdat_scen$number, digits = 2)
 
 
 
 ### Projection: vaccination
 
-cpdat_scen = spdat[spdat$skupine=="cepljeni skupaj",]
-cpdat_scen$skupine = "cepljeni"
-cpdat_scen$stevilo = round(cpdat_scen$stevilo, digits = 2)
+cpdat_scen = spdat[spdat$groups=="vaccinated",]
+cpdat_scen$groups = "vaccinated"
+cpdat_scen$number = round(cpdat_scen$number, digits = 2)
 
 
 
@@ -150,17 +155,17 @@ cpdat_scen$stevilo = round(cpdat_scen$stevilo, digits = 2)
   
 tdat = data.frame(
   
-  day = odat_scen[odat_scen$dnevi >= 1 & odat_scen$dnevi <= (duration_time - 30), "dnevi" ],
+  day = odat_scen[odat_scen$days >= 1 & odat_scen$days <= (duration_time - 30), "days" ],
   
-  OKU = round( odat_scen[odat_scen$dnevi >= 1 & odat_scen$dnevi <= (duration_time - 30), "stevilo"], 2),
-  HOS = round( hspdat_scen[hspdat_scen$dnevi >= 1 & hspdat_scen$dnevi <= (duration_time - 30), "stevilo"], 2),
-  HOSin = round( hspindat_scen[hspindat_scen$dnevi >= 1 & hspindat_scen$dnevi <= (duration_time - 30), "stevilo"], 2),
-  ICU = round( ispdat_scen[ispdat_scen$dnevi >= 1 & ispdat_scen$dnevi <= (duration_time - 30), "stevilo"], 2),
-  ICUin = round( icuindat_scen[icuindat_scen$dnevi >= 1 & icuindat_scen$dnevi <= (duration_time - 30), "stevilo"], 2),
-  DSM = round( udspdat_scen[udspdat_scen$dnevi >= 1 & udspdat_scen$dnevi <= (duration_time - 30), "stevilo"], 2),
+  OKU = round( odat_scen[odat_scen$days >= 1 & odat_scen$days <= (duration_time - 30), "number"], 2),
+  HOS = round( hspdat_scen[hspdat_scen$days >= 1 & hspdat_scen$days <= (duration_time - 30), "number"], 2),
+  HOSin = round( hspindat_scen[hspindat_scen$days >= 1 & hspindat_scen$days <= (duration_time - 30), "number"], 2),
+  ICU = round( ispdat_scen[ispdat_scen$days >= 1 & ispdat_scen$days <= (duration_time - 30), "number"], 2),
+  ICUin = round( icuindat_scen[icuindat_scen$days >= 1 & icuindat_scen$days <= (duration_time - 30), "number"], 2),
+  DSM = round( udspdat_scen[udspdat_scen$days >= 1 & udspdat_scen$days <= (duration_time - 30), "number"], 2),
   
-  VACC = round( cpdat_scen[cpdat_scen$dnevi >= 1 & cpdat_scen$dnevi <= (duration_time - 30), "stevilo"], 2),
-  VACC.rate = round( cpdat_scen[cpdat_scen$dnevi >= 1 & cpdat_scen$dnevi <= (duration_time - 30), "stevilo"]/Npop, 5)
+  VACC = round( cpdat_scen[cpdat_scen$days >= 1 & cpdat_scen$days <= (duration_time - 30), "number"], 2),
+  VACC.rate = round( cpdat_scen[cpdat_scen$days >= 1 & cpdat_scen$days <= (duration_time - 30), "number"]/Npop, 5)
   
 )
 
